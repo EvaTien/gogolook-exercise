@@ -16,18 +16,27 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     profiles: [prod]
 
   db:
     image: postgres:16
     container_name: postgres_db
+    restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     expose:
       - 5432
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U user -d db'" ]
+      interval: 6s
+      timeout: 3s
+      retries: 3
     profiles: [prod]
 
   api-test:
@@ -35,23 +44,28 @@ services:
       context: ./project
       dockerfile: Dockerfile.pytest
     depends_on:
-      - "db-test"
+      db-test:
+        condition: service_healthy
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_HOST: database
+      POSTGRES_HOST: db-test
       POSTGRES_DB: test_db
     links:
-      - db-test:database
+      - db-test:db-test
     profiles: [test]
 
   db-test:
     image: postgres:16
-    restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test_db
     expose:
       - 5432
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U user -d test_db'" ]
+      interval: 6s
+      timeout: 3s
+      retries: 3
     profiles: [test, test-db]

@@ -5,6 +5,5 @@ WORKDIR /app
 ADD . /app
 
 RUN pip install -r requirements.txt
-RUN sleep 5
 
 CMD python -m pytest
