@@ -3,15 +3,21 @@ version: "3.8"
 services:
 
   flask:
-    build: ./flask
+    build: ./project
     container_name: flask_app
     restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: database
+      POSTGRES_DB: db
     links:
       - db:database
     ports:
       - 8080:8080
     depends_on:
       - db
+    profiles: [prod]
 
   db:
     image: postgres:16
@@ -22,3 +28,30 @@ services:
       POSTGRES_PASSWORD: password
     expose:
       - 5432
+    profiles: [prod]
+
+  api-test:
+    build:
+      context: ./project
+      dockerfile: Dockerfile.pytest
+    depends_on:
+      - "db-test"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: database
+      POSTGRES_DB: test_db
+    links:
+      - db-test:database
+    profiles: [test]
+
+  db-test:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test_db
+    expose:
+      - 5432
+    profiles: [test, test-db]

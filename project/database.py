@@ -1,9 +1,10 @@
+import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base
 
-
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@database/db"
+SQLALCHEMY_DATABASE_URL = f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@" \
+                          f"{os.environ['POSTGRES_HOST']}/{os.environ['POSTGRES_DB']}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 db_session = scoped_session(
