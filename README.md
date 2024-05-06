@@ -1,4 +1,4 @@
-# gogolook-exercise
+# backend exercise
 
 Flask API in container, database use postgres
 
